@@ -16,12 +16,19 @@ public class OwnHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V> {
 
 
     @Override
-    public Object put(Object key, Object value) {
+    public V put(K key, V value) {
         int hashCode = key.hashCode();
-        int index = hashCode% buckets.size();
+        int index = hashCode % buckets.size();
 
-        buckets.get(index).add(new SimpleEntry(key, value));
-        size++;
+        LinkedList<Entry<K, V>> bucket = buckets.get(index);
+        Optional<Entry<K, V>> existedEntry = bucket.stream().filter((Entry<K, V> e) -> e.getKey().equals(key)).findAny();
+
+        if(existedEntry.isPresent())
+            existedEntry.get().setValue(value);
+        else {
+            bucket.add(new SimpleEntry(key, value));
+            size++;
+        }
 
         if(buckets.size() < size) {
             addTwoEmptyBuckets();
@@ -33,7 +40,7 @@ public class OwnHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V> {
     public void putAll(Map m) {
         Set<Entry> entries = m.entrySet();
 
-        for(Entry en : entries) {
+        for(Entry<K, V> en : entries) {
             put(en.getKey(), en.getValue());
         }
 
